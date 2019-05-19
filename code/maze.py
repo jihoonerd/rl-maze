@@ -51,7 +51,7 @@ class Maze:
             return self.line,
 
         def animate(i):
-            state = state_history[i]
+            state = state_history[i][0]
             x = (state % 4) + 0.5
             y = 3.5 - int(state / 4)
             self.line.set_data(x, y)
