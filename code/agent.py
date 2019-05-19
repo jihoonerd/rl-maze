@@ -117,11 +117,3 @@ class Agent:
             else:
                 self.state = 0
                 self.state_history = [[0, np.nan]]
-
-
-x = Agent()
-x.init()
-x.calc_policy_from_theta(x.theta)
-x.train()
-print(x.pi)
-print(x.theta)
