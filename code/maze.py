@@ -44,6 +44,8 @@ class Maze:
 
     def save_animation_html(self, file_name, state_history):
 
+        self.draw_maze()
+
         def init():
             self.line.set_data([], [])
             return self.line,
