@@ -9,8 +9,3 @@ verify_ssl = true
 numpy = "*"
 matplotlib = "*"
 ipython = "*"
-pylab = "*"
-imagemagick = "*"
-
-[requires]
-python_version = "3.7"
