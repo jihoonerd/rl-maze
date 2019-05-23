@@ -3,15 +3,13 @@ import numpy as np
 
 class Agent:
 
-    def __init__(self):
-        self.theta = None
+    def __init__(self, strategy="rand_walk"):
+        self.strategy = strategy
         self.pi = None
         self.state = 0
         self.action = None
         self.state_history = [[0, np.nan]]
-
-    def init(self):
-        theta_0 = np.array([[np.nan, 1, np.nan, np.nan],    # S0
+        self.theta = np.array([[np.nan, 1, np.nan, np.nan],    # S0
                             [np.nan, 1, np.nan, 1],         # S1
                             [np.nan, np.nan, 1, np.nan],    # S2
                             [np.nan, np.nan, 1, np.nan],    # S3
@@ -27,24 +25,24 @@ class Agent:
                             [1, 1, np.nan, 1],              # S13
                             [1, np.nan, np.nan, 1],         # S14
                             ])  # S15 does not need a policy.
-        self.theta = theta_0
+        self.calc_policy_from_theta()
 
-    def calc_policy_from_theta(self, theta, method="softmax"):
+    def calc_policy_from_theta(self):
         """Assume uniform distribution for available states"""
 
-        [m, n] = theta.shape
+        [m, n] = self.theta.shape
         pi = np.zeros((m, n))
 
-        if method == "uniform":
+        if self.strategy == "rand_walk":
             for i in range(0, m):
                 pi[i, :] = self.theta[i, :] / np.nansum(self.theta[i, :])
-        elif method == "softmax":
+        elif self.strategy == "pg":
             beta = 1.0
-            exp_theta = np.exp(beta * theta)
+            exp_theta = np.exp(beta * self.theta)
             for i in range(0, m):
                 pi[i, :] = exp_theta[i, :] / np.nansum(exp_theta[i, :])
         else:
-            raise ValueError("undefined method %s" % method)
+            raise ValueError("undefined strategy %s" % self.strategy)
 
         self.pi = np.nan_to_num(pi)
 
@@ -82,17 +80,17 @@ class Agent:
         for i in range(0, m):
             for j in range(0, n):
                 if not(np.isnan(self.theta[i, j])):
-                    SA_i = [SA for SA in self.state_history if SA[0] == i]
-                    SA_ij = [SA for SA in self.state_history if SA == [i, j]]
-                    N_i = len(SA_i)
-                    N_ij = len(SA_ij)
+                    sa_i = [SA for SA in self.state_history if SA[0] == i]
+                    sa_ij = [SA for SA in self.state_history if SA == [i, j]]
+                    sa_i_tot = len(sa_i)
+                    sa_ij_tot = len(sa_ij)
 
-                    delta_theta[i, j] = (N_ij - self.pi[i, j] * N_i) / T
+                    delta_theta[i, j] = (sa_ij_tot - self.pi[i, j] * sa_i_tot) / T
 
         self.theta = self.theta + eta * delta_theta
 
-
     def solve_maze(self):
+
         while True:
             self.move_next_state()
             self.state_history[-1][1] = self.action
@@ -101,19 +99,26 @@ class Agent:
                 print("Complete in %d steps" % (len(self.state_history) - 1))
                 break
 
-    def train(self):
-        stop_epsilon = 10**-4
+    def train(self, stop_epsilon=10**-4):
+
+        if self.strategy == 'rand_walk':
+            raise ValueError('train does not support rand_walk strategy')
+
         is_continue = True
         while is_continue:
             self.solve_maze()
             old_pi = self.pi
             self.update_theta()
-            self.calc_policy_from_theta(self.theta)
+            self.calc_policy_from_theta()
 
             print("Complete in %d steps" % (len(self.state_history) - 1))
 
             if np.sum(np.abs(self.pi - old_pi)) < stop_epsilon:
                 is_continue = False
+                print("Training Complete.")
             else:
                 self.state = 0
                 self.state_history = [[0, np.nan]]
+
+    def reset(self):
+        self.__init__(self.strategy)
