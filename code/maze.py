@@ -42,7 +42,7 @@ class Maze:
 
         self.line, = self.ax.plot([0.5], [3.5], marker='o', color='g', markersize=60)
 
-    def save_animation_html(self, file_name, state_history):
+    def save_animation(self, file_name, state_history):
 
         self.draw_maze()
 
@@ -57,9 +57,15 @@ class Maze:
             self.line.set_data(x, y)
             return self.line,
 
-        anim = animation.FuncAnimation(self.fig, animate, init_func=init, frames=len(state_history), repeat=False)
-        html = HTML(anim.to_jshtml()).data
+        if file_name.split('.')[1] == 'html':
+            anim = animation.FuncAnimation(self.fig, animate, init_func=init, frames=len(state_history), repeat=False)
+            html = HTML(anim.to_jshtml()).data
 
-        with open(file_name, 'w') as f:
-            f.write(html)
-            print("Animation is saved at %s." % file_name)
+            with open(file_name, 'w') as f:
+                f.write(html)
+                print("Animation is saved at %s." % file_name)
+        elif file_name.split('.')[1] == 'gif':
+            anim = animation.FuncAnimation(self.fig, animate, init_func=init, frames=len(state_history), repeat=False)
+            anim.save(file_name, writer='imagemagick', fps=240)
+        else:
+            raise ValueError("unknown extension: %s" % file_name)
