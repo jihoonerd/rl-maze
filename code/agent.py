@@ -3,13 +3,13 @@ import numpy as np
 
 class Agent:
 
-    def __init__(self, strategy="rand_walk"):
+    def __init__(self, strategy="e-greedy"):
         self.strategy = strategy
         self.pi = None
         self.state = 0
         self.action = None
         self.state_history = [[0, np.nan]]
-        self.theta = np.array([[np.nan, 1, np.nan, np.nan],    # S0
+        self.theta = np.array([[np.nan, 1, np.nan, np.nan], # S0
                             [np.nan, 1, np.nan, 1],         # S1
                             [np.nan, np.nan, 1, np.nan],    # S2
                             [np.nan, np.nan, 1, np.nan],    # S3
@@ -25,15 +25,19 @@ class Agent:
                             [1, 1, np.nan, 1],              # S13
                             [1, np.nan, np.nan, 1],         # S14
                             ])  # S15 does not need a policy.
-        self.calc_policy_from_theta()
+        if strategy in ['sarsa', 'e-greedy']:
+            a, b = self.theta.shape
+            self.Q = np.random.rand(a, b) * self.theta
 
-    def calc_policy_from_theta(self):
-        """Assume uniform distribution for available states"""
+        self.initial_covert_from_theta_to_pi()
+
+
+    def initial_covert_from_theta_to_pi(self):
 
         [m, n] = self.theta.shape
         pi = np.zeros((m, n))
 
-        if self.strategy == "rand_walk":
+        if self.strategy in ["rand_walk", "e-greedy"]:
             for i in range(0, m):
                 pi[i, :] = self.theta[i, :] / np.nansum(self.theta[i, :])
         elif self.strategy == "pg":
@@ -46,11 +50,20 @@ class Agent:
 
         self.pi = np.nan_to_num(pi)
 
-    def move_next_state(self):
+
+    def move_next_state(self, Q=None, epsilon=None):
         """Returns next states for given policy and state"""
         direction = ["U", "R", "D", "L"]
 
-        next_direction = np.random.choice(direction, p=self.pi[self.state, :])
+        if self.strategy in ["e-greedy"]:
+            if np.random.rand() < epsilon:
+                # Random move
+                next_direction = np.random.choice(direction, p=self.pi[self.state, :])
+            else:
+                # Choose action maximizes Q
+                next_direction = direction[np.nanargmax(Q[self.state, :])]
+        else:
+            next_direction = np.random.choice(direction, p=self.pi[self.state, :])
 
         if next_direction == "U":
             action = 0
@@ -109,7 +122,7 @@ class Agent:
             self.solve_maze()
             old_pi = self.pi
             self.update_theta()
-            self.calc_policy_from_theta()
+            self.initial_covert_from_theta_to_pi()
 
             print("Complete in %d steps" % (len(self.state_history) - 1))
 
@@ -122,3 +135,7 @@ class Agent:
 
     def reset(self):
         self.__init__(self.strategy)
+
+    
+    def __repr__(self):
+        return "Agent: {}".format(self.strategy)
