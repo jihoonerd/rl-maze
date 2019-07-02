@@ -83,6 +83,15 @@ class Agent:
         self.state = s_next
         self.action = action
 
+    def update_Q(self, s, a, r, s_next, a_next, Q, eta, gamma):
+
+        if s_next == 15:
+            Q[s, a] = Q[s, a] + eta * (r - Q[s, a])
+        else:
+            Q[s, a] = Q[s, a] + eta * (r + gamma * Q[s_next, a_next] - Q[s, a])
+        
+        self.Q = Q
+
     def update_theta(self):
         eta = 0.1
         T = len(self.state_history) - 1
