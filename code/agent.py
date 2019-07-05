@@ -81,7 +81,7 @@ class Agent:
             raise ValueError("undefined direction {}".format(next_direction))
         return action
 
-    def move_next_state(self, action=None, epsilon=None):
+    def move_next_state(self, action=None):
         """Returns next states for given policy and state"""
         direction = ["U", "R", "D", "L"]
 
