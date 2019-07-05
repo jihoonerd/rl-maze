@@ -151,7 +151,7 @@ class Agent:
                 a = a_next
                 self.state_history[-1][1] = a
                 s = self.state
-                self.move_next_state(action=a, epsilon=epsilon)
+                self.move_next_state(action=a)
                 s_next = self.state
                 self.state_history.append([s_next, np.nan])
 
