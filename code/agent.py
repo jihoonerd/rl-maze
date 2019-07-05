@@ -71,12 +71,11 @@ class Agent:
                 next_direction = np.random.choice(
                     direction, p=self.pi[self.state, :])
             else:
-                next_direction = direction[np.nanargmax(self.Q[self.state, :])]
+                next_direction = direction[int(np.nanargmax(self.Q[self.state, :]))]
         elif self.strategy in ["q"]:
-            next_direction = direction[np.nanargmax(self.Q[self.state, :])]
+            next_direction = direction[int(np.nanargmax(self.Q[self.state, :]))]
         else:
             raise ValueError("undefined strategy {}".format(self.strategy))
-
 
         if next_direction == "U":
             action = 0
