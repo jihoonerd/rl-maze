@@ -27,13 +27,10 @@ class Agent:
                                [1, np.nan, np.nan, 1],         # S14
                                ])                              # S15: End
 
-        if strategy in ["sarsa"]:
+        if strategy in ["sarsa", "q"]:
             a, b = self.theta.shape
             self.epsilon = 1.0
             self.Q = np.random.rand(a, b) * self.theta
-        elif strategy in ["q"]:
-            a, b = self.theta.shape
-            self.Q = np.random.rand(a, b) * self.theta * 0.1
         elif strategy in ["randwalk", "pg"]:
             pass
         else:
@@ -45,7 +42,7 @@ class Agent:
         [m, n] = self.theta.shape
         pi = np.zeros((m, n))
 
-        if self.strategy in ["rand_walk", "sarsa"]:
+        if self.strategy in ["rand_walk", "sarsa", "q"]:
             for i in range(0, m):
                 pi[i, :] = self.theta[i, :] / np.nansum(self.theta[i, :])
         elif self.strategy == "pg":
@@ -53,28 +50,19 @@ class Agent:
             exp_theta = np.exp(beta * self.theta)
             for i in range(0, m):
                 pi[i, :] = exp_theta[i, :] / np.nansum(exp_theta[i, :])
-        elif self.strategy in ["q"]:
-            pass
         else:
             raise ValueError("undefined strategy {}".format(self.strategy))
         self.pi = np.nan_to_num(pi)
 
     def get_action(self):
-        """
-        Return action by ε-greedy
-
-        epsilon: explore action by epsilon(%), exploit action by (1-epsilon(%))   
-        """
         direction = ["U", "R", "D", "L"]
 
-        if self.strategy in ["sarsa"]:
+        if self.strategy in ["sarsa", "q"]:
             if np.random.rand() < self.epsilon:
                 next_direction = np.random.choice(
                     direction, p=self.pi[self.state, :])
             else:
                 next_direction = direction[int(np.nanargmax(self.Q[self.state, :]))]
-        elif self.strategy in ["q"]:
-            next_direction = direction[int(np.nanargmax(self.Q[self.state, :]))]
         else:
             raise ValueError("undefined strategy {}".format(self.strategy))
 
@@ -184,7 +172,7 @@ class Agent:
                           (len(self.state_history) - 1))
                     break
 
-    def train(self, stop_epsilon=10**-4, eta=0.1, gamma=0.9, tot_episode=100):
+    def train(self, stop_epsilon=10**-4, eta=0.15, gamma=0.9, tot_episode=100):
         if self.strategy == 'rand_walk':
             raise ValueError('train does not support rand_walk strategy')
 
@@ -195,8 +183,7 @@ class Agent:
             V.append(v)
             while True:
                 print("Episode: ", str(episode))
-                if self.strategy in ["sarsa"]:
-                    self.epsilon = self.epsilon / 1.2
+                self.epsilon = self.epsilon / 2
                 self.solve_maze(eta=eta, gamma=gamma)
                 new_v = np.nanmax(self.Q, axis=1)
                 print("State value difference: ", np.sum(np.abs(new_v - v)))
@@ -219,6 +206,7 @@ class Agent:
                 self.initial_covert_from_theta_to_pi()
 
                 print("Complete in %d steps" % (len(self.state_history) - 1))
+
 
                 if np.sum(np.abs(self.pi - old_pi)) < stop_epsilon:
                     print("Training Complete.")
