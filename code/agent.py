@@ -9,6 +9,7 @@ class Agent:
         self.pi = None
         self.action = None
         self.state_history = [[0, np.nan]]
+        self.step_log = list()
         self.theta = np.array([[np.nan, 1, np.nan, np.nan],    # S0: Start
                                [np.nan, 1, np.nan, 1],         # S1
                                [np.nan, np.nan, 1, 1],         # S2
@@ -183,17 +184,14 @@ class Agent:
                           (len(self.state_history) - 1))
                     break
 
-    def train(self, stop_epsilon=10**-4):
+    def train(self, stop_epsilon=10**-4, eta=0.1, gamma=0.9, tot_episode=100):
         if self.strategy == 'rand_walk':
             raise ValueError('train does not support rand_walk strategy')
 
         elif self.strategy in ['sarsa', 'q']:
-            eta = 0.1
-            gamma = 0.9
             v = np.nanmax(self.Q, axis=1)
             episode = 1
-            tot_episode = 100
-            V = []
+            V = list()
             V.append(v)
             while True:
                 print("Episode: ", str(episode))
@@ -206,10 +204,10 @@ class Agent:
                 V.append(v)
                 print("Complete in %d steps" % (len(self.state_history) - 1))
                 episode += 1
+                self.step_log.append(len(self.state_history) - 1)
                 if episode > tot_episode:
                     print("State value after training: ", V[-1])
                     break
-
                 self.state = 0
                 self.state_history = [[0, np.nan]]
         else:
@@ -231,8 +229,3 @@ class Agent:
 
     def __repr__(self):
         return "Agent: {}".format(self.strategy)
-
-
-if __name__ == "__main__":
-    agent = Agent("q")
-    agent.train()
