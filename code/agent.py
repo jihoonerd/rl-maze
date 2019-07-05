@@ -44,7 +44,7 @@ class Agent:
         [m, n] = self.theta.shape
         pi = np.zeros((m, n))
 
-        if self.strategy in ["rand_walk", "sarsa", "q"]:
+        if self.strategy in ["rand_walk", "sarsa"]:
             for i in range(0, m):
                 pi[i, :] = self.theta[i, :] / np.nansum(self.theta[i, :])
         elif self.strategy == "pg":
@@ -52,6 +52,8 @@ class Agent:
             exp_theta = np.exp(beta * self.theta)
             for i in range(0, m):
                 pi[i, :] = exp_theta[i, :] / np.nansum(exp_theta[i, :])
+        elif self.strategy in ["q"]:
+            pass
         else:
             raise ValueError("undefined strategy {}".format(self.strategy))
         self.pi = np.nan_to_num(pi)
@@ -64,11 +66,17 @@ class Agent:
         """
         direction = ["U", "R", "D", "L"]
 
-        if np.random.rand() < self.epsilon:
-            next_direction = np.random.choice(
-                direction, p=self.pi[self.state, :])
-        else:
+        if self.strategy in ["sarsa"]:
+            if np.random.rand() < self.epsilon:
+                next_direction = np.random.choice(
+                    direction, p=self.pi[self.state, :])
+            else:
+                next_direction = direction[np.nanargmax(self.Q[self.state, :])]
+        elif self.strategy in ["q"]:
             next_direction = direction[np.nanargmax(self.Q[self.state, :])]
+        else:
+            raise ValueError("undefined strategy {}".format(self.strategy))
+
 
         if next_direction == "U":
             action = 0
@@ -86,7 +94,7 @@ class Agent:
         """Returns next states for given policy and state"""
         direction = ["U", "R", "D", "L"]
 
-        if action:
+        if action is not None:
             next_direction = direction[action]
         else:
             next_direction = np.random.choice(
@@ -145,7 +153,6 @@ class Agent:
         self.theta = self.theta + eta * delta_theta
 
     def solve_maze(self, eta=None, gamma=None):
-
         if self.strategy in ["sarsa", "q"]:
             a_next = self.get_action()
             while True:
@@ -178,7 +185,6 @@ class Agent:
                     break
 
     def train(self, stop_epsilon=10**-4):
-
         if self.strategy == 'rand_walk':
             raise ValueError('train does not support rand_walk strategy')
 
@@ -192,7 +198,8 @@ class Agent:
             V.append(v)
             while True:
                 print("Episode: ", str(episode))
-                self.epsilon = self.epsilon / 1.2
+                if self.strategy in ["sarsa"]:
+                    self.epsilon = self.epsilon / 1.2
                 self.solve_maze(eta=eta, gamma=gamma)
                 new_v = np.nanmax(self.Q, axis=1)
                 print("State value difference: ", np.sum(np.abs(new_v - v)))
@@ -225,3 +232,7 @@ class Agent:
 
     def __repr__(self):
         return "Agent: {}".format(self.strategy)
+
+if __name__ == "__main__":
+    agent = Agent("q")
+    agent.train()
