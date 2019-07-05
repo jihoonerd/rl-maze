@@ -232,6 +232,7 @@ class Agent:
     def __repr__(self):
         return "Agent: {}".format(self.strategy)
 
+
 if __name__ == "__main__":
     agent = Agent("q")
     agent.train()
