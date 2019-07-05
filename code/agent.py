@@ -32,6 +32,8 @@ class Agent:
         elif strategy in ["q"]:
             a, b = self.theta.shape
             self.Q = np.random.rand(a, b) * self.theta * 0.1
+        elif strategy in ["randwalk", "pg"]:
+            pass
         else:
             raise ValueError("undefined strategy {}".format(self.strategy))
         self.initial_covert_from_theta_to_pi()
