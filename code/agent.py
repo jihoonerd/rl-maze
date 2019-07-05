@@ -28,6 +28,7 @@ class Agent:
 
         if strategy in ["sarsa"]:
             a, b = self.theta.shape
+            self.epsilon = 1.0
             self.Q = np.random.rand(a, b) * self.theta
         elif strategy in ["q"]:
             a, b = self.theta.shape
@@ -55,7 +56,7 @@ class Agent:
             raise ValueError("undefined strategy {}".format(self.strategy))
         self.pi = np.nan_to_num(pi)
 
-    def get_action(self, epsilon):
+    def get_action(self):
         """
         Return action by ε-greedy
 
@@ -63,7 +64,7 @@ class Agent:
         """
         direction = ["U", "R", "D", "L"]
 
-        if np.random.rand() < epsilon:
+        if np.random.rand() < self.epsilon:
             next_direction = np.random.choice(
                 direction, p=self.pi[self.state, :])
         else:
@@ -143,10 +144,10 @@ class Agent:
 
         self.theta = self.theta + eta * delta_theta
 
-    def solve_maze(self, epsilon=None, eta=None, gamma=None):
+    def solve_maze(self, eta=None, gamma=None):
 
         if self.strategy in ["sarsa", "q"]:
-            a = a_next = self.get_action(epsilon)
+            a_next = self.get_action()
             while True:
                 a = a_next
                 self.state_history[-1][1] = a
@@ -160,7 +161,7 @@ class Agent:
                     a_next = np.nan
                 else:
                     r = 0
-                    a_next = self.get_action(epsilon)
+                    a_next = self.get_action()
 
                 self.update_Q(s, a, r, s_next, a_next, self.Q, eta, gamma)
 
@@ -184,7 +185,6 @@ class Agent:
         elif self.strategy in ['sarsa', 'q']:
             eta = 0.1
             gamma = 0.9
-            epsilon = 0.5
             v = np.nanmax(self.Q, axis=1)
             episode = 1
             tot_episode = 100
@@ -192,8 +192,8 @@ class Agent:
             V.append(v)
             while True:
                 print("Episode: ", str(episode))
-                epsilon = epsilon / np.log(3)
-                self.solve_maze(epsilon=epsilon, eta=eta, gamma=gamma)
+                self.epsilon = self.epsilon / 1.2
+                self.solve_maze(eta=eta, gamma=gamma)
                 new_v = np.nanmax(self.Q, axis=1)
                 print("State value difference: ", np.sum(np.abs(new_v - v)))
                 v = new_v
