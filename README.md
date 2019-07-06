@@ -15,8 +15,6 @@ This provides following approaches to solve maze.
 
 ## Tutorial
 
-Detailed tutorial is provided at:
-
 |Contents|||
 |---|---|---|
 |Part 1: Maze Environment| ENG | [KOR](https://jihoonerd.github.io/machine-learning/ml-rl-maze-part1-kr/)
