@@ -64,7 +64,7 @@ class Maze:
             with open(file_name, 'w') as f:
                 f.write(html)
                 print("Animation is saved at %s." % file_name)
-        elif file_name.split('.')[1] == 'gif':
+        elif file_name.split('.')[-1] == 'gif':
             anim = animation.FuncAnimation(self.fig, animate, init_func=init, frames=len(state_history), repeat=False)
             anim.save(file_name, writer='imagemagick', fps=240)
         else:
