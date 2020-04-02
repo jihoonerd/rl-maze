@@ -11,8 +11,6 @@ This provides following approaches to solve maze.
 * Sarsa
 * Q-learning
 
-![maze-solve](https://jihoonerd.github.io/assets/images/posts/2019-05-25-ml-rl-maze-part2/REINFORCE.gif)
-
 ## How to use
 
 * Instantiate Q-learning agent and train:
